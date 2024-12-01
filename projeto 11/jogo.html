@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>O GRANDE CASINO - Adivinha o número</title>
+  <style>
+    
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: rgb(218, 205, 255);
+    }
+    
+
+
+    table.center{
+        margin-left: auto; 
+  margin-right: auto;
+  border: 1px solid #ccc;
+      padding: 8px;
+      align-items: center;
+    }
+    
+    table, th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      align-items: center;
+    }
+    
+    .regras{
+    float: center;
+   
+    background-color: #ffffff;
+    border-color: black;
+    padding: 5px 30px;
+    font-size: medium;
+    color: black;
+    border-radius: 2px;
+    }
+
+    .apostar {
+      float: center;
+   
+   background-color: #ffffff;
+   border-color: black;
+   padding: 5px 30px;
+   font-size: medium;
+   color: black;
+   border-radius: 2px;
+    }
+    
+   
+    th { background-color: #f2f2f2; }
+    #cheque { display: none; margin-top: 20px; border: 2px dashed #000; padding: 10px; }
+
+  </style>
+</head>
+
+
+<body>
+  
+    <h1 style="float: center;">Adivinha o número</h1>
+    <button type="button" class="regras" onclick="regras()">Regras do jogo</button>
+</br>
+</br>
+</br>
+</br>
+
+
+
+
+    <form id="form">
+      <label for="nome">O seu nome:</label><br>
+      <input type="text" id="nome" required><br><br>
+
+      <label for="saldo">Saldo:</label><br>
+      <input type="number" id="saldo" value="50" disabled><br><br>
+
+      <label for="valoraposta">Valor da aposta:</label><br>
+      <input type="number" id="valoraposta" min="1" required><br><br>
+
+      <label for="adivinha">Adivinhe o número (1-10):</label><br>
+      <input type="number" id="adivinha" min="1" max="10" required><br><br>
+
+      <button class="apostar" type="button" onclick="apostar()">Apostar</button>
+    </br>
+  </br>
+      <button type="button" onclick="recarregar()">Carregar saldo</button>
+      <button type="button" onclick="dica()">Dica (-10% ganhos)</button>
+    </form>
+  </br>
+  <button id="novojogo" onclick="novojogo()">Novo Jogo</button>
+
+
+    <div id="mensagem"></div>
+
+    <table class = center>
+    
+        <tr>
+          <th>Tentativa</th>
+          <th>Adivinha</th>
+          <th>Resultado</th>
+        </tr>
+      <tbody class = center; id="historico"></tbody>
+    </table>
+
+    <div id="cheque">
+      <h3>Cheque</h3>
+      <p id="textocheque"></p>
+    </div>
+
+
+    
+
+  
+
+  <script>
+    let nome = ""
+    let saldo = 50;
+    let dicausada = false;
+    let tentativas = 2;
+    let nrandom = Math.floor(Math.random() * 2) + 1;
+    let valorganho = 0;
+    
+
+    function resetBackground() {
+        document.body.style.backgroundColor = "";
+    }
+
+    function apostar() {
+      const nome = document.getElementById("nome").value;
+      const valoraposta = parseInt(document.getElementById("valoraposta").value);
+      const adivinha = parseInt(document.getElementById("adivinha").value);
+      const mensagem = document.getElementById("mensagem");
+      const historico = document.getElementById("historico");
+
+      resetBackground();
+
+      if (!nome) {
+        alert ("Por favor, escreva o seu nome!");
+        return;
+      }
+
+      if (isNaN(valoraposta) || valoraposta <= 0) {
+       alert("Por favor escreva um valor válido para apostar.");
+        return;
+      }
+
+      if (valoraposta > saldo) {
+        alert("Não tem saldo suficiente!");
+        return;
+      }
+
+      if (isNaN(adivinha) || adivinha < 1 || adivinha > 3) {
+        alert("Deve colocar um número entre 1 e 10!");
+        return;
+      }
+
+      
+     
+     
+      tentativas--;
+
+      const novalinha = `<tr>
+        <td>${2 - tentativas}</td>
+        <td>${adivinha}</td>
+        <td>${adivinha === nrandom ? "certo" : "errado"}</td>
+      </tr>`;
+      historico.innerHTML += novalinha;
+
+
+
+      if (adivinha === nrandom) {
+      
+        document.body.style.backgroundColor = "#ccffcc"; // verde
+
+        const valorganho = dicausada ? valoraposta * 0.9 : valoraposta*1;
+        saldo += valorganho;
+        alert(`Parabéns, ${nome}! Adivinhou o número!`);
+        document.getElementById("saldo").value = saldo;
+        cheque(nome, valorganho)
+        fimjogo();
+
+      } else {
+        
+        document.body.style.backgroundColor = "#ffcccc"; // vermelho
+        mensagem.textContent = adivinha < nrandom ? "O número é mais alto." : "O número é mais baixo.";
+      }
+
+      if (tentativas === 0 && adivinha !== nrandom) {
+        alert(`Perdeu! O número certo era ${nrandom}.`);
+        saldo -= valoraposta;
+        fimjogo();
+      }
+
+    
+
+      document.getElementById("saldo").value = saldo;
+    }
+
+    function dica() {
+      const mensagem = document.getElementById("mensagem");
+      if (dicausada) {
+        alert("Já usou a dica nesta rodada.");
+        return;
+      }
+      dicausada = true;
+      const par = nrandom % 2 === 0;
+      mensagem.textContent = `Dica: O número é ${par ? "par" : "ímpar"}.`;
+    }
+
+    
+
+    function recarregar() {
+      const recarregar = prompt("Escreva o valor com que quer carregar (máx. 100€):");
+      const valor = parseInt(recarregar);
+      
+
+      if (isNaN(valor) || valor <= 0 || valor > 100) {
+        alert("Carregamento inválido.");
+        return;
+      }
+
+      saldo += valor;
+      document.getElementById("saldo").value = saldo;
+      alert(`Carregaste o teu saldo com ${valor}€!`);
+    }
+
+    function cheque(nome, valorganho) {
+      const cheque = document.getElementById("cheque");
+      const textocheque = document.getElementById("textocheque");
+      
+
+      textocheque.innerHTML = `
+        Nome do Jogador: ${nome}<br>
+        Valor ganho: ${valorganho}€
+      `;
+      cheque.style.display = "block";
+    }
+
+    function fimjogo() {
+      document.getElementById("valoraposta").disabled = true;
+      document.getElementById("adivinha").disabled = true;
+      document.querySelector("button[onclick='apostar()']").disabled = true;
+      document.querySelector("button[onclick='dica()']").disabled = true;
+      document.getElementById("novojogo").style.display = "inline";
+      
+    }
+
+    function regras() {
+
+    alert("As regras do jogo são:\n1. Adivinhe o número entre 1 e 10.\n2. Apenas tem 2 tentativas.\n3. Tem direito a uma dica, mas isso tem um custo.\n4. Recarregue o seu saldo para continuar o jogo.");
+}
+
+    function novojogo() {
+
+    valorganho = 0
+    tentativas = 2;
+    dicausada = false;
+    nrandom = Math.floor(Math.random() * 2) + 1;
+    document.getElementById("valoraposta").value = "";
+    document.getElementById("adivinha").value = "";
+    document.getElementById("valoraposta").disabled = false;
+    document.getElementById("adivinha").disabled = false;
+    document.querySelector("button[onclick='apostar()']").disabled = false;
+    document.querySelector("button[onclick='dica()']").disabled = false;
+    document.getElementById("novojogo").style.display = "none";
+    document.getElementById("historico").innerHTML = "";
+    document.getElementById("mensagem").textContent = "";
+    document.getElementById("cheque").style.display = "none";
+    document.getElementById("nome").disabled = true;
+
+    document.getElementById("saldo").value = saldo;
+
+    resetBackground();
+
+    }
+  </script>
+</body>
+</html>
